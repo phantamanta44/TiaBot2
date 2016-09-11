@@ -45,8 +45,8 @@ public class CommandDispatcher {
                 CmdMeta meta = new CmdMeta(modId, info, m);
                 commands.add(meta);
                 for (String alias : info.aliases())
-                    aliasMap.put(alias, meta);
-                aliasMap.put(meta.command.name(), meta);
+                    aliasMap.put(alias.toLowerCase(), meta);
+                aliasMap.put(meta.command.name().toLowerCase(), meta);
             }
         }
     }
@@ -55,10 +55,11 @@ public class CommandDispatcher {
         System.out.println(String.format("%s: %s", ctx.message().author().name(), ctx.message().body()));
         if (ctx.message() != null && ctx.message().body() != null) {
             boolean priv = ctx.channel() instanceof PrivateChannel;
-            String[] parts = ctx.message().body().split("\\s+");
+            String msg = ctx.message().body();
             String prefix = priv ? globalPrefix() : TiaBot.guildCfg(ctx.guild()).get("prefix").getAsString();
-            if (parts[0].startsWith(prefix)) {
-                CmdMeta cmd = aliasMap.get(parts[0].substring(prefix.length()));
+            if (msg.toLowerCase().startsWith(prefix.toLowerCase())) {
+                String[] parts = msg.substring(prefix.length()).split("\\s+");
+                CmdMeta cmd = aliasMap.get(parts[0].toLowerCase());
                 if (cmd != null) {
                     if (!priv) {
                         Guild guild = ctx.guild();
@@ -79,6 +80,15 @@ public class CommandDispatcher {
 
     public Stream<CommandProvider.Command> commands() {
         return commands.stream().map(c -> c.command);
+    }
+
+    public Stream<CommandProvider.Command> commands(String modId) {
+        return commands.stream().filter(c -> c.modId.equals(modId)).map(c -> c.command);
+    }
+
+    public CommandProvider.Command command(String alias) {
+        CmdMeta cmd = aliasMap.get(alias.toLowerCase());
+        return cmd == null ? null : cmd.command;
     }
 
     private static class CmdMeta {

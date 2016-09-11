@@ -12,12 +12,12 @@ public class ArgVerify {
     private Collection<ArgTest> tests = new ArrayList<>();
 
     public ArgVerify count(int num) {
-        tests.add(new ArgTest((a, c) -> a.length >= num, "Not enough arguments!"));
+        tests.add(new ArgTest((a, c) -> a.length >= num, "Not enough parameters supplied!"));
         return this;
     }
 
     public ArgVerify server() {
-        tests.add(new ArgTest((a, c) -> !(c.channel() instanceof PrivateChannel), "Not enough arguments!"));
+        tests.add(new ArgTest((a, c) -> !(c.channel() instanceof PrivateChannel), "This command can only be used in a server!"));
         return this;
     }
 
