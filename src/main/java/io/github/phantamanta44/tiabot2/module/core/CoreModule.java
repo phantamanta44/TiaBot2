@@ -1,19 +1,23 @@
 package io.github.phantamanta44.tiabot2.module.core;
 
+import io.github.phantamanta44.discord4j.core.Discord;
 import io.github.phantamanta44.discord4j.core.event.context.IEventContext;
 import io.github.phantamanta44.discord4j.core.module.Module;
 import io.github.phantamanta44.discord4j.core.module.ModuleConfig;
 import io.github.phantamanta44.discord4j.core.module.ModuleManager;
 import io.github.phantamanta44.discord4j.data.Permission;
+import io.github.phantamanta44.discord4j.data.wrapper.Guild;
 import io.github.phantamanta44.discord4j.data.wrapper.PrivateChannel;
 import io.github.phantamanta44.discord4j.util.StringUtils;
 import io.github.phantamanta44.tiabot2.TiaBot;
 import io.github.phantamanta44.tiabot2.command.ArgVerify;
 import io.github.phantamanta44.tiabot2.command.CmdPerm;
-import io.github.phantamanta44.tiabot2.command.CommandDispatcher;
 import io.github.phantamanta44.tiabot2.command.CommandProvider;
+import org.apache.commons.lang3.tuple.Pair;
+import sx.blah.discord.Discord4J;
 
-import java.util.Arrays;
+import java.time.ZoneId;
+import java.util.*;
 import java.util.stream.Stream;
 
 @CommandProvider(CoreModule.MOD_ID)
@@ -156,6 +160,85 @@ public class CoreModule {
         }
         else
             ctx.send("%s: Command '%s' not found!", ctx.user().tag(), args[0].toLowerCase());
+    }
+
+    @CommandProvider.Command(
+            name = "listmods", usage = "listmods",
+            desc = "Lists all modules and their statuses."
+    )
+    public static void cmdListMods(String[] args, IEventContext ctx) {
+        Stream<ModuleManager.ModMeta> modules = TiaBot.bot().moduleMan().modules();
+        if (ctx.channel() instanceof PrivateChannel) {
+            ctx.send("__**All Modules**__\n%s",
+                    modules.map(m -> String.format("- `%s`: %s", m.info.id(), m.info.desc()))
+                            .reduce((a, b) -> a.concat("\n").concat(b)).orElse("Nothing to see here.")
+            );
+        } else {
+            ctx.send("__**All Modules**__\n%s",
+                    modules.map(m -> String.format("%s `%s`: %s", m.config.enabled(ctx.guild()) ? "+" : "-", m.info.id(), m.info.desc()))
+                            .reduce((a, b) -> a.concat("\n").concat(b)).orElse("Nothing to see here.")
+            );
+        }
+    }
+
+    @CommandProvider.Command(
+            name = "info", usage = "info",
+            desc = "Retrieves statistics and other information about the bot."
+    )
+    public static void cmdInfo(String[] args, IEventContext ctx) {
+        List<Pair<String, Object>> info = new ArrayList<>();
+        info.add(Pair.of("User ID", TiaBot.bot().user().id()));
+        info.add(Pair.of("Servers", TiaBot.bot().guilds().count()));
+        info.add(Pair.of("Channels", TiaBot.bot().channels().count()));
+        info.add(Pair.of("Users", TiaBot.bot().guilds().flatMap(Guild::users).count()));
+        String infoStr = info.stream()
+                .map(e -> e.getKey().concat(": ").concat(String.valueOf(e.getValue())))
+                .reduce((a, b) -> a.concat("\n").concat(b)).get();
+        ctx.send("__**Bot Information**__\n```%s```\nSource code available at https://github.com/phantamanta44/TiaBot2", infoStr);
+    }
+
+    @CommandProvider.Command(
+            name = "uptime", usage = "uptime",
+            desc = "Retrieves the bot's uptime."
+    )
+    public static void cmdUptime(String[] args, IEventContext ctx) {
+        ctx.send("%s: Current uptime: %s", ctx.user().tag(), StringUtils.formatTimeElapsed(
+                System.currentTimeMillis() - Discord4J.getLaunchTime().atZone(ZoneId.systemDefault()).toInstant().toEpochMilli()
+        ));
+    }
+
+    @CommandProvider.Command(
+            name = "mem", usage = "mem",
+            desc = "Retrieves information about the bot's memory usage."
+    )
+    public static void cmdMem(String[] args, IEventContext ctx) {
+        Runtime rt = Runtime.getRuntime();
+        ctx.send("Used Memory: %.2f/%.2fMB", (rt.totalMemory() - rt.freeMemory()) / 1000000F, rt.totalMemory() / 1000000F);
+    }
+
+    @CommandProvider.Command(
+            name = "revoke", aliases = "unsay", usage = "revoke [count]",
+            desc = "Revokes a number of messages sent by the bot."
+    )
+    public static void cmdRevoke(String[] args, IEventContext ctx) {
+        try {
+            long toDelete = args.length < 1 ? 0 : Integer.parseInt(args[0]);
+            ctx.channel().messages().sequential()
+                    .filter(m -> m.author().equals(TiaBot.bot().user()))
+                    .sorted((a, b) -> (int) (a.timestamp() - b.timestamp()))
+                    .limit(toDelete).destroyAll()
+                    .fail(e -> ctx.send("%s: Encountered `%s` while trying to delete messages!", ctx.user().tag(), e.getClass().getName()));
+        } catch (NumberFormatException e) {
+            ctx.send("%s: Invalid numeral value `%s`!", ctx.user().tag(), args[0]);
+        }
+    }
+
+    @CommandProvider.Command(
+            name = "addbot", aliases = "invite", usage = "addbot",
+            desc = "Provides a link for adding this bot to a server"
+    )
+    public static void cmdAddBot(String[] args, IEventContext ctx) {
+        ctx.send("%s: https://discordapp.com/oauth2/authorize?client_id=%s&scope=bot", ctx.user().tag(), TiaBot.bot().application().clientId());
     }
 
 }

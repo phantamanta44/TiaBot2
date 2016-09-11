@@ -71,7 +71,7 @@ public class CommandDispatcher {
                                 cmd.executor.accept(Arrays.copyOfRange(parts, 1, parts.length), ctx);
                         }
                     }
-                    else
+                    else if (Arrays.stream(cmd.command.perms()).allMatch(p -> p.privTest.test(ctx.user())))
                         cmd.executor.accept(Arrays.copyOfRange(parts, 1, parts.length), ctx);
                 }
             }
