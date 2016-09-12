@@ -43,14 +43,13 @@ public class CoreModule {
                 .done(m -> m.edit("%s: Approximate reponse time: %dms", ctx.user().tag(), m.timestamp() - ctx.message().timestamp()));
     }
 
-    private static final ArgVerify VERIFY_TOGGLEMOD = new ArgVerify().server().count(1);
     @CommandProvider.Command(
             name = "togglemod", usage = "togglemod <module>",
             desc = "Toggles a module on or off for this server.",
             perms = {CmdPerm.SERVER_OWNER}
     )
     public static void cmdToggleMod(String[] args, IEventContext ctx) {
-        if (!VERIFY_TOGGLEMOD.verify(args, ctx))
+        if (!ArgVerify.GUILD_ONE.verify(args, ctx))
             return;
         ModuleConfig cfg = TiaBot.bot().moduleMan().configFor(args[0]);
         if (cfg != null && !cfg.info().id().equalsIgnoreCase(MOD_ID)) {
@@ -62,14 +61,13 @@ public class CoreModule {
 
     }
 
-    private static final ArgVerify VERIFY_SETPREFIX = new ArgVerify().server().count(1);
     @CommandProvider.Command(
-            name = "setprefix", usage = "setprefix <prefix>",
+            name = "setprefix", usage = "setprefix <`prefix`>",
             desc = "Sets the command prefix for this server.",
             perms = {CmdPerm.SERVER_OWNER}
     )
     public static void cmdSetPrefix(String[] args, IEventContext ctx) {
-        if (!VERIFY_SETPREFIX.verify(args, ctx))
+        if (!ArgVerify.GUILD_ONE.verify(args, ctx))
             return;
         String newPref = StringUtils.concat(args);
         if (newPref.startsWith("`") && newPref.endsWith("`"))
@@ -144,13 +142,12 @@ public class CoreModule {
         }
     }
 
-    private static final ArgVerify VERIFY_MAN = new ArgVerify().count(1);
     @CommandProvider.Command(
             name = "man", usage = "man <command>",
             desc = "Provides more detailed info about a command."
     )
     public static void cmdMan(String[] args, IEventContext ctx) {
-        if (!VERIFY_MAN.verify(args, ctx))
+        if (!ArgVerify.ONE.verify(args, ctx))
             return;
         CommandProvider.Command cmd = TiaBot.commander().command(args[0]);
         if (cmd != null) {
@@ -219,41 +216,26 @@ public class CoreModule {
         ctx.send("Used Memory: %.2f/%.2fMB", (rt.totalMemory() - rt.freeMemory()) / 1000000F, rt.totalMemory() / 1000000F);
     }
 
-    private static final ArgVerify VERIFY_REVOKE = new ArgVerify().server();
     @CommandProvider.Command(
             name = "revoke", aliases = "unsay", usage = "revoke [count]",
             desc = "Revokes a number of messages sent by the bot.",
             dcPerms = {Permission.MANAGE_MSG}
     )
     public static void cmdRevoke(String[] args, IEventContext ctx) {
-        if (!VERIFY_REVOKE.verify(args, ctx))
+        if (!ArgVerify.GUILD.verify(args, ctx))
             return;
         try {
             long toDelete = args.length < 1 ? 1 : Integer.parseInt(args[0]);
             if (toDelete < 1)
                 throw new NumberFormatException();
-            if (toDelete == 1) {
-                ctx.channel().messages().sequential()
-                        .filter(m -> m.author().equals(TiaBot.bot().user()))
-                        .max((a, b) -> (int)(a.timestamp() - b.timestamp()))
-                        .get().destroy()
-                        .fail(e -> {
-                            ctx.send("%s: Encountered `%s` while trying to delete messages!", ctx.user().tag(), e.getClass().getName());
-                            e.printStackTrace();
-                        });
-            } else {
-                ctx.channel().messages().sequential()
-                        .filter(m -> m.author().equals(TiaBot.bot().user()))
-                        .peek(m -> System.out.println(m.body() + "-"))
-                        .sorted((a, b) -> (int)(b.timestamp() - a.timestamp()))
-                        .peek(m -> System.out.println(m.body() + "--"))
-                        .limit(toDelete)
-                        .peek(m -> System.out.println(m.body() + "---")).destroyAll()
-                        .fail(e -> {
-                            ctx.send("%s: Encountered `%s` while trying to delete messages!", ctx.user().tag(), e.getClass().getName());
-                            e.printStackTrace();
-                        });
-            }
+            ctx.channel().messages().sequential()
+                    .filter(m -> m.author().equals(TiaBot.bot().user()))
+                    .sorted((a, b) -> (int)(b.timestamp() - a.timestamp()))
+                    .limit(toDelete).destroyAll()
+                    .fail(e -> {
+                        ctx.send("%s: Encountered `%s` while trying to delete messages!", ctx.user().tag(), e.getClass().getName());
+                        e.printStackTrace();
+                    });
         } catch (NumberFormatException e) {
             ctx.send("%s: Invalid numeral value `%s`!", ctx.user().tag(), args[0]);
         }

@@ -9,6 +9,10 @@ import java.util.function.BiPredicate;
 
 public class ArgVerify {
 
+    public static final ArgVerify GUILD = new ArgVerify().server();
+    public static final ArgVerify ONE = new ArgVerify().count(1);
+    public static final ArgVerify GUILD_ONE = new ArgVerify().server().count(1);
+
     private Collection<ArgTest> tests = new ArrayList<>();
 
     public ArgVerify count(int num) {
