@@ -1,7 +1,16 @@
 package io.github.phantamanta44.tiabot2.command;
 
+import java.lang.reflect.Method;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.function.BiConsumer;
+import java.util.stream.Stream;
+
 import com.github.fge.lambdas.Throwing;
-import io.github.lukehutch.fastclasspathscanner.FastClasspathScanner;
+
 import io.github.phantamanta44.discord4j.core.Discord;
 import io.github.phantamanta44.discord4j.core.event.EventBus;
 import io.github.phantamanta44.discord4j.core.event.Events;
@@ -12,15 +21,6 @@ import io.github.phantamanta44.discord4j.data.wrapper.Guild;
 import io.github.phantamanta44.discord4j.data.wrapper.PrivateChannel;
 import io.github.phantamanta44.discord4j.util.reflection.Reflect;
 import io.github.phantamanta44.tiabot2.TiaBot;
-
-import java.lang.reflect.Method;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.CopyOnWriteArrayList;
-import java.util.function.BiConsumer;
-import java.util.stream.Stream;
 
 public class CommandDispatcher {
 

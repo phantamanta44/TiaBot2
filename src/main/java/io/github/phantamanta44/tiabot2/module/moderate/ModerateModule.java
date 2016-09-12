@@ -1,5 +1,7 @@
 package io.github.phantamanta44.tiabot2.module.moderate;
 
+import java.util.function.Predicate;
+
 import io.github.phantamanta44.discord4j.core.event.context.IEventContext;
 import io.github.phantamanta44.discord4j.core.module.Module;
 import io.github.phantamanta44.discord4j.core.module.ModuleConfig;
@@ -7,11 +9,8 @@ import io.github.phantamanta44.discord4j.data.Permission;
 import io.github.phantamanta44.discord4j.data.wrapper.Channel;
 import io.github.phantamanta44.discord4j.data.wrapper.Message;
 import io.github.phantamanta44.discord4j.util.function.Lambdas;
-import io.github.phantamanta44.tiabot2.TiaBot;
 import io.github.phantamanta44.tiabot2.command.ArgVerify;
 import io.github.phantamanta44.tiabot2.command.CommandProvider;
-
-import java.util.function.Predicate;
 
 @CommandProvider(ModerateModule.MOD_ID)
 public class ModerateModule {

@@ -1,18 +1,23 @@
 package io.github.phantamanta44.tiabot2;
 
-import ch.qos.logback.classic.Level;
-import ch.qos.logback.classic.Logger;
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileReader;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.io.PrintWriter;
+
 import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
+
+import ch.qos.logback.classic.Level;
+import ch.qos.logback.classic.Logger;
 import io.github.phantamanta44.discord4j.core.Discord;
 import io.github.phantamanta44.discord4j.data.wrapper.Bot;
 import io.github.phantamanta44.discord4j.data.wrapper.Guild;
 import io.github.phantamanta44.tiabot2.command.CommandDispatcher;
 import sx.blah.discord.Discord4J;
-
-import java.io.*;
 
 public class TiaBot {
 

@@ -1,5 +1,13 @@
 package io.github.phantamanta44.tiabot2.module.core;
 
+import java.time.ZoneId;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+import java.util.stream.Stream;
+
+import org.apache.commons.lang3.tuple.Pair;
+
 import io.github.phantamanta44.discord4j.core.event.context.IEventContext;
 import io.github.phantamanta44.discord4j.core.module.Module;
 import io.github.phantamanta44.discord4j.core.module.ModuleConfig;
@@ -12,14 +20,7 @@ import io.github.phantamanta44.tiabot2.TiaBot;
 import io.github.phantamanta44.tiabot2.command.ArgVerify;
 import io.github.phantamanta44.tiabot2.command.CmdPerm;
 import io.github.phantamanta44.tiabot2.command.CommandProvider;
-import org.apache.commons.lang3.tuple.Pair;
 import sx.blah.discord.Discord4J;
-
-import java.time.ZoneId;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.stream.Stream;
 
 @CommandProvider(CoreModule.MOD_ID)
 public class CoreModule {
