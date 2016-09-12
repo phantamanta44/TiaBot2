@@ -42,7 +42,7 @@ public class ArgVerify {
         public boolean test(String[] args, IEventContext ctx) {
             if (test.test(args, ctx))
                 return true;
-            ctx.send(failure);
+            ctx.send("%s: %s", ctx.user().tag(), failure);
             return false;
         }
 
