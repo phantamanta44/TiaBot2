@@ -9,6 +9,7 @@ import io.github.phantamanta44.discord4j.data.Permission;
 import io.github.phantamanta44.discord4j.data.wrapper.Channel;
 import io.github.phantamanta44.discord4j.data.wrapper.Message;
 import io.github.phantamanta44.discord4j.util.function.Lambdas;
+import io.github.phantamanta44.tiabot2.command.ArgTokenizer;
 import io.github.phantamanta44.tiabot2.command.ArgVerify;
 import io.github.phantamanta44.tiabot2.command.CommandProvider;
 
@@ -38,7 +39,7 @@ public class ModerateModule {
             ctx.send("%s: Invalid numeral value `%s`!", ctx.user().tag(), args[0]);
         }
     }
-/* TODO Finish
+
     @CommandProvider.Command(
             name = "rmregex", usage = "rm <`regexp`> [count]", dcPerms = {Permission.MANAGE_MSG},
             desc = "Removes a number of messages matching a regex filter from the current channel."
@@ -46,13 +47,19 @@ public class ModerateModule {
     public static void cmdRmRegex(String[] args, IEventContext ctx) {
         if (!ArgVerify.GUILD_ONE.verify(args, ctx))
             return;
-        try {
-            delete(ctx.channel(), args.length < 2 ? 1 : Integer.parseInt(args[1]), Lambdas.acceptAll(), ctx);
-        } catch (NumberFormatException e) {
-            ctx.send("%s: Invalid numeral value `%s`!", ctx.user().tag(), args[1]);
+        ArgTokenizer tokens = new ArgTokenizer(args);
+        String regex = tokens.nextInlineCode();
+        long toDel = 1;
+        if (tokens.hasNext()) {
+        	toDel = tokens.nextInt();
+        	if (toDel < 1) {
+        		ctx.send("%s: Invalid numeral value `%s`!", ctx.user().tag(), args[1]);
+        		return;
+        	}
         }
+        delete(ctx.channel(), toDel, m -> m.body().matches(regex), ctx);
     }
-*/
+
     private static void delete(Channel chan, long toDelete, Predicate<Message> filter, IEventContext ctx) {
         if (toDelete < 1)
             throw new NumberFormatException();
