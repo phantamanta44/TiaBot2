@@ -4,6 +4,7 @@ import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.NoSuchElementException;
 import java.util.stream.Stream;
 
 import org.apache.commons.lang3.tuple.Pair;
@@ -17,6 +18,7 @@ import io.github.phantamanta44.discord4j.data.wrapper.Guild;
 import io.github.phantamanta44.discord4j.data.wrapper.PrivateChannel;
 import io.github.phantamanta44.discord4j.util.StringUtils;
 import io.github.phantamanta44.tiabot2.TiaBot;
+import io.github.phantamanta44.tiabot2.command.ArgTokenizer;
 import io.github.phantamanta44.tiabot2.command.ArgVerify;
 import io.github.phantamanta44.tiabot2.command.CmdPerm;
 import io.github.phantamanta44.tiabot2.command.CommandProvider;
@@ -70,11 +72,14 @@ public class CoreModule {
     public static void cmdSetPrefix(String[] args, IEventContext ctx) {
         if (!ArgVerify.GUILD_ONE.verify(args, ctx))
             return;
-        String newPref = StringUtils.concat(args);
-        if (newPref.startsWith("`") && newPref.endsWith("`"))
-            newPref = newPref.substring(1, newPref.length() - 1);
-        TiaBot.guildCfg(ctx.guild()).addProperty("prefix", newPref);
-        ctx.send("%s: Command prefix set to `%s`.", ctx.user().tag(), newPref);
+        try {
+        	ArgTokenizer tokens = new ArgTokenizer(args);
+        	String newPref = tokens.nextInlineCode();
+            TiaBot.guildCfg(ctx.guild()).addProperty("prefix", newPref);
+            ctx.send("%s: Command prefix set to `%s`.", ctx.user().tag(), newPref);
+        } catch (NoSuchElementException e) {
+        	ctx.send("%s: No suitable parameter provided!", ctx.user().tag());
+        }
     }
 
     @CommandProvider.Command(
