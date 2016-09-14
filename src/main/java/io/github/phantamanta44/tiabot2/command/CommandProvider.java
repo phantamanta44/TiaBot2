@@ -23,6 +23,8 @@ public @interface CommandProvider {
 
         String desc() default "No description provided.";
 
+        String docs() default "";
+
         String[] aliases() default {};
 
         CmdPerm[] perms() default {};

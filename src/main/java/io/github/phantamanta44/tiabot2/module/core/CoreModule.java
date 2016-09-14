@@ -1,14 +1,5 @@
 package io.github.phantamanta44.tiabot2.module.core;
 
-import java.time.ZoneId;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.NoSuchElementException;
-import java.util.stream.Stream;
-
-import org.apache.commons.lang3.tuple.Pair;
-
 import io.github.phantamanta44.discord4j.core.event.context.IEventContext;
 import io.github.phantamanta44.discord4j.core.module.Module;
 import io.github.phantamanta44.discord4j.core.module.ModuleConfig;
@@ -22,7 +13,15 @@ import io.github.phantamanta44.tiabot2.command.ArgTokenizer;
 import io.github.phantamanta44.tiabot2.command.ArgVerify;
 import io.github.phantamanta44.tiabot2.command.CmdPerm;
 import io.github.phantamanta44.tiabot2.command.CommandProvider;
+import org.apache.commons.lang3.tuple.Pair;
 import sx.blah.discord.Discord4J;
+
+import java.time.ZoneId;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+import java.util.NoSuchElementException;
+import java.util.stream.Stream;
 
 @CommandProvider(CoreModule.MOD_ID)
 public class CoreModule {
@@ -162,7 +161,7 @@ public class CoreModule {
                     Arrays.stream(cmd.perms()).map(CmdPerm::toString), Arrays.stream(cmd.dcPerms()).map(Permission::toString)
             ).reduce((a, b) -> a.concat(", ").concat(b)).orElse("None");
             ctx.send("__**Command: %s**__\n%s\n\nUsage: `%s`\nAliases: %s\nPermissions: %s",
-                    cmd.name(), cmd.desc(), cmd.usage(), aliases.isEmpty() ? "None" : aliases, perms);
+                    cmd.name(), cmd.docs().isEmpty() ? cmd.desc() : cmd.docs(), cmd.usage(), aliases.isEmpty() ? "None" : aliases, perms);
         }
         else
             ctx.send("%s: Command '%s' not found!", ctx.user().tag(), args[0].toLowerCase());
