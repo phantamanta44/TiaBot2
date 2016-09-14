@@ -56,7 +56,7 @@ public class ModerateModule {
             if (tokens.hasNext()) {
                 toDel = tokens.nextInt();
                 if (toDel < 1) {
-                    ctx.send("%s: Invalid numeral value `%d`!", ctx.user().tag(), toDel;
+                    ctx.send("%s: Invalid numeral value `%d`!", ctx.user().tag(), toDel);
                     return;
                 }
             }
