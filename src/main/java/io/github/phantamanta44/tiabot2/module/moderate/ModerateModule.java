@@ -19,13 +19,12 @@ import java.util.function.Predicate;
 public class ModerateModule {
 
     public static final String MOD_ID = "moderate";
-    private static ModuleConfig config;
     @Module(
             id = MOD_ID, name = "Moderation", author = "Phanta",
             desc = "This module provides a set of tools to make server moderation easier."
     )
     public static void moduleInit(ModuleConfig cfg) {
-        config = cfg;
+        // NO-OP
     }
 
     @CommandProvider.Command(
