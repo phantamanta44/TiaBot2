@@ -41,7 +41,7 @@ public class ModerateModule {
     }
 
     @CommandProvider.Command(
-            name = "rmregex", usage = "rmregex <`regexp`> [count]", dcPerms = {Permission.MANAGE_MSG},
+            name = "rmregex", usage = "rmregex <'regexp'> [count]", dcPerms = {Permission.MANAGE_MSG},
             desc = "Removes a number of messages matching a regex filter from the current channel."
     )
     public static void cmdRmRegex(String[] args, IEventContext ctx) {

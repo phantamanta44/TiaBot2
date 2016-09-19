@@ -67,7 +67,7 @@ public class CoreModule {
     }
 
     @CommandProvider.Command(
-            name = "setprefix", usage = "setprefix <`prefix`>",
+            name = "setprefix", usage = "setprefix <'prefix'>",
             desc = "Sets the command prefix for this server.",
             perms = {CmdPerm.SERVER_OWNER}
     )
