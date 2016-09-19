@@ -65,7 +65,7 @@ public class ArgTokenizer {
 			throw new NoSuchElementException("No such token available!");
 		}
 		final int start = pos - 1;
-		while (!sb.substring(sb.length() - 3, sb.length())) {
+		while (!sb.substring(sb.length() - 3, sb.length()).equals("```")) {
 			if (hasNext())
 				sb.append(nextString());
 			else {
@@ -73,13 +73,12 @@ public class ArgTokenizer {
 				throw new NoSuchElementException("No such token available!");
 			}
 		}
-		return sb.substring(1, sb.length() - 1);
+		return sb.substring(0, sb.length() - 3).trim();
 	}
 	
 	public int nextInt() {
 		try {
 			String str = nextString();
-			System.out.println(str);
 			return Integer.parseInt(str);
 		} catch (NumberFormatException e) {
 			pos--;

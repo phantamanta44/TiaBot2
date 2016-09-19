@@ -4,7 +4,6 @@ import io.github.phantamanta44.discord4j.core.event.context.IEventContext;
 import io.github.phantamanta44.discord4j.core.module.Module;
 import io.github.phantamanta44.discord4j.core.module.ModuleConfig;
 import io.github.phantamanta44.discord4j.data.Permission;
-import io.github.phantamanta44.discord4j.data.wrapper.Channel;
 import io.github.phantamanta44.discord4j.data.wrapper.Message;
 import io.github.phantamanta44.discord4j.data.wrapper.User;
 import io.github.phantamanta44.discord4j.util.function.Lambdas;
@@ -35,7 +34,7 @@ public class ModerateModule {
         if (!ArgVerify.GUILD.verify(args, ctx))
             return;
         try {
-            delete(ctx.channel(), args.length < 1 ? 1 : Integer.parseInt(args[0]), Lambdas.acceptAll(), ctx);
+            delete(args.length < 1 ? 1 : Integer.parseInt(args[0]), Lambdas.acceptAll(), ctx);
         } catch (NumberFormatException e) {
             ctx.send("%s: Invalid numeral value `%s`!", ctx.user().tag(), args[0]);
         }
@@ -59,10 +58,9 @@ public class ModerateModule {
                     return;
                 }
             }
-            delete(ctx.channel(), toDel, m -> m.body().matches(regex), ctx);
+            delete(toDel, m -> m.body().matches(regex), ctx);
         } catch (NoSuchElementException e) {
             ctx.send("%s: Invalid parameters!", ctx.user().tag());
-            e.printStackTrace();
         }
     }
 
@@ -84,23 +82,29 @@ public class ModerateModule {
                     return;
                 }
             }
-            delete(ctx.channel(), toDel, m -> m.author().equals(user), ctx);
+            delete(toDel, m -> m.author().equals(user), ctx);
         } catch (NoSuchElementException e) {
             ctx.send("%s: Invalid parameters!", ctx.user().tag());
-            e.printStackTrace();
         }
     }
 
-    private static void delete(Channel chan, long toDelete, Predicate<Message> filter, IEventContext ctx) {
+    private static void delete(long toDelete, Predicate<Message> filter, IEventContext ctx) {
         if (toDelete < 1)
             throw new NumberFormatException();
-        ctx.channel().messages().sequential()
-                .sorted((a, b) -> (int)(b.timestamp() - a.timestamp()))
-                .limit(toDelete).destroyAll()
-                .fail(e -> {
+        ctx.message().destroy().fail(e -> {
+            ctx.send("%s: Encountered `%s` while trying to delete messages!", ctx.user().tag(), e.getClass().getName());
+            e.printStackTrace();
+        }).done(() ->
+            ctx.channel().messages()
+                .sequential()
+                .filter(filter)
+                .sorted((a, b) -> (int) (b.timestamp() - a.timestamp()))
+                .limit(toDelete)
+                .destroyAll().fail(e -> {
                     ctx.send("%s: Encountered `%s` while trying to delete messages!", ctx.user().tag(), e.getClass().getName());
                     e.printStackTrace();
-                });
+                })
+        );
     }
 
 }
