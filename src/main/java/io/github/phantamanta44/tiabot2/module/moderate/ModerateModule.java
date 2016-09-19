@@ -62,6 +62,7 @@ public class ModerateModule {
             delete(ctx.channel(), toDel, m -> m.body().matches(regex), ctx);
         } catch (NoSuchElementException e) {
             ctx.send("%s: Invalid parameters!", ctx.user().tag());
+            e.printStackTrace();
         }
     }
 
@@ -86,6 +87,7 @@ public class ModerateModule {
             delete(ctx.channel(), toDel, m -> m.author().equals(user), ctx);
         } catch (NoSuchElementException e) {
             ctx.send("%s: Invalid parameters!", ctx.user().tag());
+            e.printStackTrace();
         }
     }
 

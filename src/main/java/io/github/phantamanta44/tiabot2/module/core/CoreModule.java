@@ -54,13 +54,16 @@ public class CoreModule {
         if (!ArgVerify.GUILD_ONE.verify(args, ctx))
             return;
         ModuleConfig cfg = TiaBot.bot().moduleMan().configFor(args[0]);
-        if (cfg != null && !cfg.info().id().equalsIgnoreCase(MOD_ID)) {
-            cfg.setEnabled(ctx.guild(), !config.enabled(ctx.guild()));
-            ctx.send("%s: %s the %s module.", ctx.user().tag(), config.enabled(ctx.guild()) ? "Enabled" : "Disabled", cfg.info().name());
+        if (cfg != null) {
+            if (!cfg.info().id().equalsIgnoreCase(MOD_ID)) {
+                cfg.setEnabled(ctx.guild(), !cfg.enabled(ctx.guild()));
+                ctx.send("%s: %s the %s module.", ctx.user().tag(), cfg.enabled(ctx.guild()) ? "Enabled" : "Disabled", cfg.info().name());
+            }
+            else
+                ctx.send("%s: This module cannot be disabled!", ctx.user().tag());
         }
         else
-            ctx.send("%s: This module cannot be disabled!", ctx.user().tag());
-
+            ctx.send("%s: No such module found!", ctx.user().tag());
     }
 
     @CommandProvider.Command(
