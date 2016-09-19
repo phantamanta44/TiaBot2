@@ -49,7 +49,7 @@ public class ArgTokenizer {
 				&& (sb.charAt(sb.length() - 3) == '\\' || sb.charAt(sb.length() - 2) != '\\')
 		)) {
 			if (hasNext())
-				sb.append(nextString());
+				sb.append(' ').append(nextString());
 			else {
 				pos = start;
 				throw new NoSuchElementException("No such token available!");
@@ -64,16 +64,16 @@ public class ArgTokenizer {
 			pos--;
 			throw new NoSuchElementException("No such token available!");
 		}
-		final int start = pos - 1;
+		final int start = pos - 1, str0Len = sb.length();
 		while (!sb.substring(sb.length() - 3, sb.length()).equals("```")) {
 			if (hasNext())
-				sb.append(nextString());
+				sb.append(' ').append(nextString());
 			else {
 				pos = start;
 				throw new NoSuchElementException("No such token available!");
 			}
 		}
-		return sb.substring(0, sb.length() - 3).trim();
+		return sb.substring(str0Len, sb.length() - 3).trim();
 	}
 	
 	public int nextInt() {

@@ -90,8 +90,10 @@ public class CoreModule {
             perms = {CmdPerm.BOT_OWNER}
     )
     public static void cmdHalt(String[] args, IEventContext ctx) {
-        if (args.length < 1)
+        if (args.length < 1) {
             ctx.send("Shutting down!").always(m -> Runtime.getRuntime().exit(130));
+            return;
+        }
         switch (args[0].toLowerCase()) {
             case "reboot":
                 ctx.send("Rebooting!").always(m -> Runtime.getRuntime().exit(32));
