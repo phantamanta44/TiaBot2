@@ -11,7 +11,9 @@ public class ArgVerify {
 
     public static final ArgVerify GUILD = new ArgVerify().server();
     public static final ArgVerify ONE = new ArgVerify().count(1);
+    public static final ArgVerify TWO = new ArgVerify().count(2);
     public static final ArgVerify GUILD_ONE = new ArgVerify().server().count(1);
+	public static final ArgVerify GUILD_TWO = new ArgVerify().server().count(2);
 
     private Collection<ArgTest> tests = new ArrayList<>();
 
