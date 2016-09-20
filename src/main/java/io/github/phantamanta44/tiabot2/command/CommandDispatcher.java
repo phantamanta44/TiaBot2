@@ -52,7 +52,6 @@ public class CommandDispatcher {
     }
 
     private void parse(IEventContext ctx) {
-        System.out.println(String.format("%s: %s", ctx.message().author().name(), ctx.message().body()));
         if (ctx.message() != null && ctx.message().body() != null) {
             boolean priv = ctx.channel() instanceof PrivateChannel;
             String msg = ctx.message().body();

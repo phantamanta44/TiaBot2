@@ -48,7 +48,7 @@ public class CoreModule {
     @CommandProvider.Command(
             name = "togglemod", usage = "togglemod <module>",
             desc = "Toggles a module on or off for this server.",
-            perms = {CmdPerm.SERVER_OWNER}
+            dcPerms = Permission.MANAGE_SERV
     )
     public static void cmdToggleMod(String[] args, IEventContext ctx) {
         if (!ArgVerify.GUILD_ONE.verify(args, ctx))
@@ -69,7 +69,7 @@ public class CoreModule {
     @CommandProvider.Command(
             name = "setprefix", usage = "setprefix <'prefix'>",
             desc = "Sets the command prefix for this server.",
-            perms = {CmdPerm.SERVER_OWNER}
+            dcPerms = Permission.MANAGE_SERV
     )
     public static void cmdSetPrefix(String[] args, IEventContext ctx) {
         if (!ArgVerify.GUILD_ONE.verify(args, ctx))
@@ -87,7 +87,7 @@ public class CoreModule {
     @CommandProvider.Command(
             name = "halt", usage = "halt [reason]",
             desc = "Halts the bot.",
-            perms = {CmdPerm.BOT_OWNER}
+            perms = CmdPerm.BOT_OWNER
     )
     public static void cmdHalt(String[] args, IEventContext ctx) {
         if (args.length < 1) {
@@ -110,7 +110,7 @@ public class CoreModule {
     @CommandProvider.Command(
             name = "globalsave", usage="globalsave",
             desc = "Writes all configuration files to disk.",
-            perms = {CmdPerm.BOT_OWNER}
+            perms = CmdPerm.BOT_OWNER
     )
     public static void cmdGlobalSave(String[] args, IEventContext ctx) {
         TiaBot.saveDb();
@@ -229,7 +229,7 @@ public class CoreModule {
     @CommandProvider.Command(
             name = "revoke", aliases = "unsay", usage = "revoke [count]",
             desc = "Revokes a number of messages sent by the bot.",
-            dcPerms = {Permission.MANAGE_MSG}
+            dcPerms = Permission.MANAGE_MSG
     )
     public static void cmdRevoke(String[] args, IEventContext ctx) {
         if (!ArgVerify.GUILD.verify(args, ctx))
