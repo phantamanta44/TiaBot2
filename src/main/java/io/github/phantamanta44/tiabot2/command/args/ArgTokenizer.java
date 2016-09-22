@@ -1,14 +1,26 @@
-package io.github.phantamanta44.tiabot2.command;
+package io.github.phantamanta44.tiabot2.command.args;
+
+import java.util.HashMap;
+import java.util.Map;
+import java.util.NoSuchElementException;
+import java.util.function.Function;
 
 import io.github.phantamanta44.discord4j.data.wrapper.Channel;
-import io.github.phantamanta44.discord4j.data.wrapper.Guild;
-import io.github.phantamanta44.discord4j.data.wrapper.Role;
 import io.github.phantamanta44.discord4j.data.wrapper.User;
 import io.github.phantamanta44.tiabot2.TiaBot;
 
-import java.util.NoSuchElementException;
-
 public class ArgTokenizer {
+	
+	private static final Map<Class<?>, Function<ArgTokenizer, Object>> typeMap = new HashMap<>();
+	
+	static {
+		typeMap.put(String.class, ArgTokenizer::nextString);
+		typeMap.put(InlineCodeBlock.class, ArgTokenizer::nextInlineCode);
+		typeMap.put(CodeBlock.class, ArgTokenizer::nextBlockCode);
+		typeMap.put(Integer.TYPE, ArgTokenizer::nextInt);
+		typeMap.put(User.class, ArgTokenizer::nextUserTag);
+		typeMap.put(Channel.class, ArgTokenizer::nextChannelTag);
+	}
 
 	private String[] parts;
 	private int pos;
@@ -37,7 +49,7 @@ public class ArgTokenizer {
 		return parts[pos++];
 	}
 	
-	public String nextInlineCode() {
+	public InlineCodeBlock nextInlineCode() {
 		StringBuilder sb = new StringBuilder(nextString());
 		if (sb.charAt(0) != '`') {
 			pos--;
@@ -55,10 +67,10 @@ public class ArgTokenizer {
 				throw new NoSuchElementException("No such token available!");
 			}
 		}
-		return sb.substring(1, sb.length() - 1);
+		return new InlineCodeBlock(sb.substring(1, sb.length() - 1));
 	}
 	
-	public String nextBlockCode() {
+	public CodeBlock nextBlockCode() {
 		StringBuilder sb = new StringBuilder(nextString());
 		if (!sb.substring(0, 3).equals("```")) {
 			pos--;
@@ -73,7 +85,7 @@ public class ArgTokenizer {
 				throw new NoSuchElementException("No such token available!");
 			}
 		}
-		return sb.substring(str0Len, sb.length() - 3).trim();
+		return new CodeBlock(sb.substring(str0Len, sb.length() - 3).trim());
 	}
 	
 	public int nextInt() {
@@ -117,19 +129,11 @@ public class ArgTokenizer {
 		}
 		return chan;
 	}
-
-	public Role nextRoleTag(Guild guild) {
-		String tag = nextString();
-		if (!tag.startsWith("<@&") || !tag.endsWith(">")) {
-			pos--;
-			throw new NoSuchElementException("No such token available!");
-		}
-		Role role = guild.role(tag.substring(3, tag.length() - 1));
-		if (role == null) {
-			pos--;
-			throw new NoSuchElementException("Unknown role!");
-		}
-		return role;
+	
+	@SuppressWarnings("unchecked")
+	public <T> T resolveType(Class<T> type) {
+		Function<ArgTokenizer, Object> mapper = typeMap.get(type);
+		return mapper == null ? null : (T)mapper.apply(this);
 	}
 	
 }

@@ -1,15 +1,14 @@
 package io.github.phantamanta44.tiabot2.command;
 
+import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
+import java.util.NoSuchElementException;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
-import java.util.function.BiConsumer;
 import java.util.stream.Stream;
-
-import com.github.fge.lambdas.Throwing;
 
 import io.github.phantamanta44.discord4j.core.Discord;
 import io.github.phantamanta44.discord4j.core.event.EventBus;
@@ -21,6 +20,7 @@ import io.github.phantamanta44.discord4j.data.wrapper.Guild;
 import io.github.phantamanta44.discord4j.data.wrapper.PrivateChannel;
 import io.github.phantamanta44.discord4j.util.reflection.Reflect;
 import io.github.phantamanta44.tiabot2.TiaBot;
+import io.github.phantamanta44.tiabot2.command.args.ArgTokenizer;
 
 public class CommandDispatcher {
 
@@ -67,14 +67,39 @@ public class CommandDispatcher {
                             if (!user.has(cmd.command.dcPerms()) || !Arrays.stream(cmd.command.perms()).allMatch(p -> p.test.test(user)))
                                 ctx.send("%s: You don't have the necessary permissions!", ctx.user().tag());
                             else
-                                cmd.executor.accept(Arrays.copyOfRange(parts, 1, parts.length), ctx);
+                            	tryInvoke(cmd, Arrays.copyOfRange(parts, 1, parts.length), ctx);
                         }
                     }
                     else if (Arrays.stream(cmd.command.perms()).allMatch(p -> p.privTest.test(ctx.user())))
-                        cmd.executor.accept(Arrays.copyOfRange(parts, 1, parts.length), ctx);
+                    	tryInvoke(cmd, Arrays.copyOfRange(parts, 1, parts.length), ctx);
                 }
             }
         }
+    }
+    
+    private static void tryInvoke(CmdMeta cmd, String[] args, IEventContext ctx) {
+    	try {
+    		Object[] params = new Object[cmd.paramTypes.length];
+    		ArgTokenizer tokenizer = new ArgTokenizer(args);
+    		for (int i = 0; i < params.length; i++) {
+    			if (cmd.paramTypes[i] == IEventContext.class)
+    				params[i] = ctx;
+    			else if (cmd.paramTypes[i] == String[].class)
+    				params[i] = args;
+    			else {
+	    			try {
+	    				params[i] = tokenizer.resolveType(cmd.paramTypes[i]);
+	    			} catch (NoSuchElementException e) {
+	    				ctx.send("%s: Invalid argument %d! Expected %s.", i + 1, cmd.paramTypes[i].getName());
+	    				return;
+	    			}
+    			}
+    		}
+    		cmd.executor.invoke(null, params);
+    	} catch (InvocationTargetException | IllegalAccessException e) {
+    		Discord.logger().warn("Errored while dispatching command \"{}\"!", cmd.command.name());
+    		e.printStackTrace();
+    	}
     }
 
     public Stream<CommandProvider.Command> commands() {
@@ -94,12 +119,14 @@ public class CommandDispatcher {
 
         final String modId;
         final CommandProvider.Command command;
-        final BiConsumer<String[], IEventContext> executor;
+        final Method executor;
+        final Class<?>[] paramTypes;
 
         CmdMeta(String modId, CommandProvider.Command cmd, Method method) {
             this.modId = modId;
             this.command = cmd;
-            this.executor = Throwing.biConsumer((args, ctx) -> method.invoke(null, args, ctx));
+            this.executor = method;
+            this.paramTypes = method.getParameterTypes();
         }
 
     }

@@ -8,9 +8,10 @@ import io.github.phantamanta44.discord4j.data.Permission;
 import io.github.phantamanta44.discord4j.data.wrapper.Guild;
 import io.github.phantamanta44.discord4j.util.io.IOUtils;
 import io.github.phantamanta44.tiabot2.TiaBot;
-import io.github.phantamanta44.tiabot2.command.ArgVerify;
 import io.github.phantamanta44.tiabot2.command.CmdPerm;
 import io.github.phantamanta44.tiabot2.command.CommandProvider;
+import io.github.phantamanta44.tiabot2.command.args.ArgVerify;
+
 import org.apache.commons.lang3.tuple.Pair;
 
 import java.io.File;

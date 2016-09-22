@@ -1,4 +1,4 @@
-package io.github.phantamanta44.tiabot2.command;
+package io.github.phantamanta44.tiabot2.command.args;
 
 import io.github.phantamanta44.discord4j.core.event.context.IEventContext;
 import io.github.phantamanta44.discord4j.data.wrapper.PrivateChannel;

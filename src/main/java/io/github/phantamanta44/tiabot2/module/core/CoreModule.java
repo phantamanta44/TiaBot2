@@ -9,10 +9,11 @@ import io.github.phantamanta44.discord4j.data.wrapper.Guild;
 import io.github.phantamanta44.discord4j.data.wrapper.PrivateChannel;
 import io.github.phantamanta44.discord4j.util.StringUtils;
 import io.github.phantamanta44.tiabot2.TiaBot;
-import io.github.phantamanta44.tiabot2.command.ArgTokenizer;
-import io.github.phantamanta44.tiabot2.command.ArgVerify;
 import io.github.phantamanta44.tiabot2.command.CmdPerm;
 import io.github.phantamanta44.tiabot2.command.CommandProvider;
+import io.github.phantamanta44.tiabot2.command.args.ArgTokenizer;
+import io.github.phantamanta44.tiabot2.command.args.ArgVerify;
+
 import org.apache.commons.lang3.tuple.Pair;
 import sx.blah.discord.Discord4J;
 

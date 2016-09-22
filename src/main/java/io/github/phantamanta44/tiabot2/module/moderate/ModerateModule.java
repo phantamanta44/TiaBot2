@@ -7,9 +7,9 @@ import io.github.phantamanta44.discord4j.data.Permission;
 import io.github.phantamanta44.discord4j.data.wrapper.Message;
 import io.github.phantamanta44.discord4j.data.wrapper.User;
 import io.github.phantamanta44.discord4j.util.function.Lambdas;
-import io.github.phantamanta44.tiabot2.command.ArgTokenizer;
-import io.github.phantamanta44.tiabot2.command.ArgVerify;
 import io.github.phantamanta44.tiabot2.command.CommandProvider;
+import io.github.phantamanta44.tiabot2.command.args.ArgTokenizer;
+import io.github.phantamanta44.tiabot2.command.args.ArgVerify;
 
 import java.util.NoSuchElementException;
 import java.util.function.Predicate;
