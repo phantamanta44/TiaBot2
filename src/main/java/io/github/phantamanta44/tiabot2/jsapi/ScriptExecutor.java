@@ -1,8 +1,5 @@
 package io.github.phantamanta44.tiabot2.jsapi;
 
-import java.util.Map;
-
-import com.github.fge.lambdas.Throwing;
 import org.mozilla.javascript.*;
 
 public class ScriptExecutor {

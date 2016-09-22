@@ -1,22 +1,29 @@
 package io.github.phantamanta44.tiabot2.module.script;
 
-import java.util.*;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Map;
 import java.util.stream.Stream;
 
-import io.github.phantamanta44.discord4j.core.StaticInit;
+import org.mozilla.javascript.Context;
+import org.mozilla.javascript.RhinoException;
+import org.mozilla.javascript.Scriptable;
+import org.mozilla.javascript.ScriptableObject;
+
 import io.github.phantamanta44.discord4j.core.event.Events;
 import io.github.phantamanta44.discord4j.core.event.Handler;
 import io.github.phantamanta44.discord4j.core.event.context.IEventContext;
-import io.github.phantamanta44.discord4j.data.wrapper.Bot;
-import io.github.phantamanta44.discord4j.data.wrapper.ChannelUser;
-import io.github.phantamanta44.discord4j.data.wrapper.Guild;
-import io.github.phantamanta44.discord4j.data.wrapper.PrivateChannel;
 import io.github.phantamanta44.discord4j.util.io.IOUtils;
 import io.github.phantamanta44.tiabot2.TiaBot;
-import io.github.phantamanta44.tiabot2.command.CommandDispatcher;
 import io.github.phantamanta44.tiabot2.jsapi.ScriptExecutor;
-import io.github.phantamanta44.tiabot2.module.script.host.*;
-import org.mozilla.javascript.*;
+import io.github.phantamanta44.tiabot2.module.script.host.HostObjectChannel;
+import io.github.phantamanta44.tiabot2.module.script.host.HostObjectDiscordAPI;
+import io.github.phantamanta44.tiabot2.module.script.host.HostObjectGuild;
+import io.github.phantamanta44.tiabot2.module.script.host.HostObjectMessage;
+import io.github.phantamanta44.tiabot2.module.script.host.HostObjectRole;
+import io.github.phantamanta44.tiabot2.module.script.host.HostObjectUser;
 
 @Handler(ScriptingModule.MOD_ID)
 public class CustomCommandExecutor {
