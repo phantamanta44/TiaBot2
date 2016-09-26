@@ -1,25 +1,30 @@
 package io.github.phantamanta44.tiabot2.command.args;
 
+import java.lang.reflect.Type;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.NoSuchElementException;
 import java.util.function.Function;
 
+import io.github.phantamanta44.discord4j.core.module.ModuleConfig;
 import io.github.phantamanta44.discord4j.data.wrapper.Channel;
 import io.github.phantamanta44.discord4j.data.wrapper.User;
 import io.github.phantamanta44.tiabot2.TiaBot;
+import io.github.phantamanta44.tiabot2.command.Command;
 
 public class ArgTokenizer {
 	
-	private static final Map<Class<?>, Function<ArgTokenizer, Object>> typeMap = new HashMap<>();
+	private static final Map<Type, Function<ArgTokenizer, Object>> typeMap = new HashMap<>();
 	
 	static {
 		typeMap.put(String.class, ArgTokenizer::nextString);
 		typeMap.put(InlineCodeBlock.class, ArgTokenizer::nextInlineCode);
 		typeMap.put(CodeBlock.class, ArgTokenizer::nextBlockCode);
-		typeMap.put(Integer.TYPE, ArgTokenizer::nextInt);
+		typeMap.put(Integer.class, ArgTokenizer::nextInt);
 		typeMap.put(User.class, ArgTokenizer::nextUserTag);
 		typeMap.put(Channel.class, ArgTokenizer::nextChannelTag);
+		typeMap.put(Command.class, ArgTokenizer::nextCommand);
+		typeMap.put(ModuleConfig.class, ArgTokenizer::nextModule);
 	}
 
 	private String[] parts;
@@ -85,10 +90,10 @@ public class ArgTokenizer {
 				throw new NoSuchElementException("No such token available!");
 			}
 		}
-		return new CodeBlock(sb.substring(str0Len, sb.length() - 3).trim());
+		return new CodeBlock(sb.substring(str0Len, sb.length() - 3).trim(), sb.substring(3, str0Len));
 	}
 	
-	public int nextInt() {
+	public Integer nextInt() {
 		try {
 			String str = nextString();
 			return Integer.parseInt(str);
@@ -130,8 +135,28 @@ public class ArgTokenizer {
 		return chan;
 	}
 	
+	public Command nextCommand() {
+		String cmdName = nextString();
+		Command cmd = TiaBot.commander().command(cmdName);
+		if (cmd == null) {
+			pos--;
+			throw new NoSuchElementException("Unknown command!");
+		}
+		return cmd;
+	}
+	
+	public ModuleConfig nextModule() {
+		String modId = nextString();
+		ModuleConfig cfg = TiaBot.bot().moduleMan().configFor(modId);
+		if (cfg == null) {
+			pos--;
+			throw new NoSuchElementException("Unknown command!");
+		}
+		return cfg;
+	}
+	
 	@SuppressWarnings("unchecked")
-	public <T> T resolveType(Class<T> type) {
+	public <T> T resolveType(Type type) {
 		Function<ArgTokenizer, Object> mapper = typeMap.get(type);
 		return mapper == null ? null : (T)mapper.apply(this);
 	}

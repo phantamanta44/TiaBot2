@@ -18,12 +18,12 @@ import io.github.phantamanta44.discord4j.core.event.context.IEventContext;
 import io.github.phantamanta44.discord4j.util.io.IOUtils;
 import io.github.phantamanta44.tiabot2.TiaBot;
 import io.github.phantamanta44.tiabot2.jsapi.ScriptExecutor;
-import io.github.phantamanta44.tiabot2.module.script.host.HostObjectChannel;
-import io.github.phantamanta44.tiabot2.module.script.host.HostObjectDiscordAPI;
-import io.github.phantamanta44.tiabot2.module.script.host.HostObjectGuild;
-import io.github.phantamanta44.tiabot2.module.script.host.HostObjectMessage;
-import io.github.phantamanta44.tiabot2.module.script.host.HostObjectRole;
-import io.github.phantamanta44.tiabot2.module.script.host.HostObjectUser;
+import io.github.phantamanta44.tiabot2.jsapi.host.HostObjectChannel;
+import io.github.phantamanta44.tiabot2.jsapi.host.HostObjectDiscordAPI;
+import io.github.phantamanta44.tiabot2.jsapi.host.HostObjectGuild;
+import io.github.phantamanta44.tiabot2.jsapi.host.HostObjectMessage;
+import io.github.phantamanta44.tiabot2.jsapi.host.HostObjectRole;
+import io.github.phantamanta44.tiabot2.jsapi.host.HostObjectUser;
 
 @Handler(ScriptingModule.MOD_ID)
 public class CustomCommandExecutor {

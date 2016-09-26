@@ -1,7 +1,9 @@
 package io.github.phantamanta44.tiabot2.command;
 
+import java.lang.reflect.AnnotatedType;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.lang.reflect.Parameter;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
@@ -21,6 +23,7 @@ import io.github.phantamanta44.discord4j.data.wrapper.PrivateChannel;
 import io.github.phantamanta44.discord4j.util.reflection.Reflect;
 import io.github.phantamanta44.tiabot2.TiaBot;
 import io.github.phantamanta44.tiabot2.command.args.ArgTokenizer;
+import io.github.phantamanta44.tiabot2.command.args.Omittable;
 
 public class CommandDispatcher {
 
@@ -40,7 +43,7 @@ public class CommandDispatcher {
     private void registerAll(Class<?> prov) {
         String modId = prov.getAnnotation(CommandProvider.class).value();
         for (Method m : prov.getDeclaredMethods()) {
-            CommandProvider.Command info = m.getAnnotation(CommandProvider.Command.class);
+            Command info = m.getAnnotation(Command.class);
             if (info != null) {
                 CmdMeta meta = new CmdMeta(modId, info, m);
                 commands.add(meta);
@@ -70,7 +73,8 @@ public class CommandDispatcher {
                             	tryInvoke(cmd, Arrays.copyOfRange(parts, 1, parts.length), ctx);
                         }
                     }
-                    else if (Arrays.stream(cmd.command.perms()).allMatch(p -> p.privTest.test(ctx.user())))
+                    else if (!cmd.command.guildOnly()
+                    		&& Arrays.stream(cmd.command.perms()).allMatch(p -> p.privTest.test(ctx.user())))
                     	tryInvoke(cmd, Arrays.copyOfRange(parts, 1, parts.length), ctx);
                 }
             }
@@ -82,16 +86,18 @@ public class CommandDispatcher {
     		Object[] params = new Object[cmd.paramTypes.length];
     		ArgTokenizer tokenizer = new ArgTokenizer(args);
     		for (int i = 0; i < params.length; i++) {
-    			if (cmd.paramTypes[i] == IEventContext.class)
+    			if (cmd.paramTypes[i].getType() == IEventContext.class)
     				params[i] = ctx;
-    			else if (cmd.paramTypes[i] == String[].class)
+    			else if (cmd.paramTypes[i].getType() == String[].class)
     				params[i] = args;
     			else {
 	    			try {
-	    				params[i] = tokenizer.resolveType(cmd.paramTypes[i]);
+	    				params[i] = tokenizer.resolveType(cmd.paramTypes[i].getType());
 	    			} catch (NoSuchElementException e) {
-	    				ctx.send("%s: Invalid argument %d! Expected %s.", i + 1, cmd.paramTypes[i].getName());
-	    				return;
+	    				if (!cmd.paramTypes[i].isAnnotationPresent(Omittable.class)) {
+		    				ctx.send("%s: Invalid argument %d! Expected %s.", i + 1, cmd.paramTypes[i].getType().getTypeName());
+		    				return;
+	    				}
 	    			}
     			}
     		}
@@ -102,15 +108,15 @@ public class CommandDispatcher {
     	}
     }
 
-    public Stream<CommandProvider.Command> commands() {
+    public Stream<Command> commands() {
         return commands.stream().map(c -> c.command);
     }
 
-    public Stream<CommandProvider.Command> commands(String modId) {
+    public Stream<Command> commands(String modId) {
         return commands.stream().filter(c -> c.modId.equals(modId)).map(c -> c.command);
     }
 
-    public CommandProvider.Command command(String alias) {
+    public Command command(String alias) {
         CmdMeta cmd = aliasMap.get(alias.toLowerCase());
         return cmd == null ? null : cmd.command;
     }
@@ -118,15 +124,17 @@ public class CommandDispatcher {
     private static class CmdMeta {
 
         final String modId;
-        final CommandProvider.Command command;
+        final Command command;
         final Method executor;
-        final Class<?>[] paramTypes;
+        final AnnotatedType[] paramTypes;
 
-        CmdMeta(String modId, CommandProvider.Command cmd, Method method) {
+		CmdMeta(String modId, Command cmd, Method method) {
             this.modId = modId;
             this.command = cmd;
             this.executor = method;
-            this.paramTypes = method.getParameterTypes();
+            this.paramTypes = Arrays.stream(method.getParameters())
+            		.map(Parameter::getAnnotatedType)
+            		.toArray(AnnotatedType[]::new);
         }
 
     }

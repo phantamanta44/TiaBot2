@@ -1,5 +1,7 @@
 package io.github.phantamanta44.tiabot2.module.moderate;
 
+import java.util.function.Predicate;
+
 import io.github.phantamanta44.discord4j.core.event.context.IEventContext;
 import io.github.phantamanta44.discord4j.core.module.Module;
 import io.github.phantamanta44.discord4j.core.module.ModuleConfig;
@@ -7,12 +9,10 @@ import io.github.phantamanta44.discord4j.data.Permission;
 import io.github.phantamanta44.discord4j.data.wrapper.Message;
 import io.github.phantamanta44.discord4j.data.wrapper.User;
 import io.github.phantamanta44.discord4j.util.function.Lambdas;
+import io.github.phantamanta44.tiabot2.command.Command;
 import io.github.phantamanta44.tiabot2.command.CommandProvider;
-import io.github.phantamanta44.tiabot2.command.args.ArgTokenizer;
-import io.github.phantamanta44.tiabot2.command.args.ArgVerify;
-
-import java.util.NoSuchElementException;
-import java.util.function.Predicate;
+import io.github.phantamanta44.tiabot2.command.args.InlineCodeBlock;
+import io.github.phantamanta44.tiabot2.command.args.Omittable;
 
 @CommandProvider(ModerateModule.MOD_ID)
 public class ModerateModule {
@@ -26,66 +26,31 @@ public class ModerateModule {
         // NO-OP
     }
 
-    @CommandProvider.Command(
+    @Command(
             name = "rm", usage = "rm [count]", dcPerms = {Permission.MANAGE_MSG},
-            desc = "Removes a number of messages from the current channel."
+            desc = "Removes a number of messages from the current channel.",
+            guildOnly = true
     )
-    public static void cmdRm(String[] args, IEventContext ctx) {
-        if (!ArgVerify.GUILD.verify(args, ctx))
-            return;
-        try {
-            delete(args.length < 1 ? 1 : Integer.parseInt(args[0]), Lambdas.acceptAll(), ctx);
-        } catch (NumberFormatException e) {
-            ctx.send("%s: Invalid numeral value `%s`!", ctx.user().tag(), args[0]);
-        }
+    public static void cmdRm(@Omittable Integer toDelete, IEventContext ctx) {
+        delete(toDelete == null ? 1 : toDelete, Lambdas.acceptAll(), ctx);
     }
 
-    @CommandProvider.Command(
+    @Command(
             name = "rmregex", usage = "rmregex <'regexp'> [count]", dcPerms = {Permission.MANAGE_MSG},
-            desc = "Removes a number of messages matching a regex filter from the current channel."
+            desc = "Removes a number of messages matching a regex filter from the current channel.",
+            guildOnly = true
     )
-    public static void cmdRmRegex(String[] args, IEventContext ctx) {
-        if (!ArgVerify.GUILD_ONE.verify(args, ctx))
-            return;
-        try {
-            ArgTokenizer tokens = new ArgTokenizer(args);
-            String regex = tokens.nextInlineCode();
-            long toDel = 1;
-            if (tokens.hasNext()) {
-                toDel = tokens.nextInt();
-                if (toDel < 1) {
-                    ctx.send("%s: Invalid numeral value `%d`!", ctx.user().tag(), toDel);
-                    return;
-                }
-            }
-            delete(toDel, m -> m.body().matches(regex), ctx);
-        } catch (NoSuchElementException e) {
-            ctx.send("%s: Invalid parameters!", ctx.user().tag());
-        }
+    public static void cmdRmRegex(InlineCodeBlock regex, @Omittable Integer toDelete, IEventContext ctx) {
+        delete(toDelete == null ? 1 : toDelete, m -> m.body().matches(regex.getCode()), ctx);
     }
 
-    @CommandProvider.Command(
+    @Command(
             name = "rmuser", usage = "rmuser <@user> [count]", dcPerms = {Permission.MANAGE_MSG},
-            desc = "Removes a number of messages send by a user from the current channel."
+            desc = "Removes a number of messages send by a user from the current channel.",
+            guildOnly = true
     )
-    public static void cmdRmUser(String[] args, IEventContext ctx) {
-        if (!ArgVerify.GUILD_ONE.verify(args, ctx))
-            return;
-        try {
-            ArgTokenizer tokens = new ArgTokenizer(args);
-            User user = tokens.nextUserTag();
-            long toDel = 1;
-            if (tokens.hasNext()) {
-                toDel = tokens.nextInt();
-                if (toDel < 1) {
-                    ctx.send("%s: Invalid numeral value `%d`!", ctx.user().tag(), toDel);
-                    return;
-                }
-            }
-            delete(toDel, m -> m.author().equals(user), ctx);
-        } catch (NoSuchElementException e) {
-            ctx.send("%s: Invalid parameters!", ctx.user().tag());
-        }
+    public static void cmdRmUser(User user, @Omittable Integer toDelete, IEventContext ctx) {
+        delete(toDelete == null ? 1 : toDelete, m -> m.author().equals(user), ctx);
     }
 
     private static void delete(long toDelete, Predicate<Message> filter, IEventContext ctx) {

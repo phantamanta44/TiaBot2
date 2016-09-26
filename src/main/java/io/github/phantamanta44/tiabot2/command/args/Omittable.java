@@ -1,4 +1,4 @@
-package io.github.phantamanta44.tiabot2.command;
+package io.github.phantamanta44.tiabot2.command.args;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
@@ -6,9 +6,5 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 @Retention(RetentionPolicy.RUNTIME)
-@Target(ElementType.TYPE)
-public @interface CommandProvider {
-
-    String value();
-
-}
+@Target(ElementType.PARAMETER)
+public @interface Omittable { }

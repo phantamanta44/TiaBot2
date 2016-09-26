@@ -1,4 +1,4 @@
-package io.github.phantamanta44.tiabot2.module.script.host;
+package io.github.phantamanta44.tiabot2.jsapi.host;
 
 import io.github.phantamanta44.discord4j.data.wrapper.Role;
 import org.mozilla.javascript.Context;

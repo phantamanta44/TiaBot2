@@ -1,9 +1,15 @@
 package io.github.phantamanta44.tiabot2.command.args;
 
-public class InlineCodeBlock extends DelegateString {
+public class InlineCodeBlock {
 
-	public InlineCodeBlock(String backing) {
-		super(backing);
+	final String code;
+	
+	public InlineCodeBlock(String code) {
+		this.code = code;
+	}
+	
+	public String getCode() {
+		return code;
 	}
 
 }
