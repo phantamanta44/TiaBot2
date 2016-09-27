@@ -1,18 +1,5 @@
 package io.github.phantamanta44.tiabot2.command;
 
-import io.github.phantamanta44.discord4j.core.Discord;
-import io.github.phantamanta44.discord4j.core.event.EventBus;
-import io.github.phantamanta44.discord4j.core.event.Events;
-import io.github.phantamanta44.discord4j.core.event.context.IEventContext;
-import io.github.phantamanta44.discord4j.core.module.ModuleManager;
-import io.github.phantamanta44.discord4j.data.wrapper.ChannelUser;
-import io.github.phantamanta44.discord4j.data.wrapper.Guild;
-import io.github.phantamanta44.discord4j.data.wrapper.PrivateChannel;
-import io.github.phantamanta44.discord4j.util.reflection.Reflect;
-import io.github.phantamanta44.tiabot2.TiaBot;
-import io.github.phantamanta44.tiabot2.command.args.ArgTokenizer;
-import io.github.phantamanta44.tiabot2.command.args.Omittable;
-
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Parameter;
@@ -23,6 +10,18 @@ import java.util.NoSuchElementException;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.stream.Stream;
+
+import io.github.phantamanta44.discord4j.core.Discord;
+import io.github.phantamanta44.discord4j.core.event.EventBus;
+import io.github.phantamanta44.discord4j.core.event.Events;
+import io.github.phantamanta44.discord4j.core.event.context.IEventContext;
+import io.github.phantamanta44.discord4j.core.module.ModuleManager;
+import io.github.phantamanta44.discord4j.data.wrapper.ChannelUser;
+import io.github.phantamanta44.discord4j.data.wrapper.PrivateChannel;
+import io.github.phantamanta44.discord4j.util.reflection.Reflect;
+import io.github.phantamanta44.tiabot2.TiaBot;
+import io.github.phantamanta44.tiabot2.command.args.ArgTokenizer;
+import io.github.phantamanta44.tiabot2.command.args.Omittable;
 
 public class CommandDispatcher {
 
@@ -55,32 +54,41 @@ public class CommandDispatcher {
 
     private void parse(IEventContext ctx) {
         if (ctx.message() != null && ctx.message().body() != null) {
-            boolean priv = ctx.channel() instanceof PrivateChannel;
-            String msg = ctx.message().body();
-            String prefix = priv ? globalPrefix() : TiaBot.guildCfg(ctx.guild()).get("prefix").getAsString();
-            if (msg.toLowerCase().startsWith(prefix.toLowerCase())) {
-                String[] parts = msg.substring(prefix.length()).split("\\s+");
-                CmdMeta cmd = aliasMap.get(parts[0].toLowerCase());
-                if (cmd != null) {
-                    if (!priv) {
-                        Guild guild = ctx.guild();
-                        if (TiaBot.bot().moduleMan().configFor(cmd.modId).enabled(guild)) {
-                            ChannelUser user = ctx.user().of(ctx.guild()).of(ctx.channel());
-                            if (!user.has(cmd.command.dcPerms()) || !Arrays.stream(cmd.command.perms()).allMatch(p -> p.test.test(user)))
-                                ctx.send("%s: You don't have the necessary permissions!", ctx.user().tag());
-                            else
-                            	tryInvoke(cmd, Arrays.copyOfRange(parts, 1, parts.length), ctx);
+        	String prefix = ctx.channel() instanceof PrivateChannel ? globalPrefix() : TiaBot.guildCfg(ctx.guild()).get("prefix").getAsString();
+        	for (String expr : ctx.message().body().split(";")) { // TODO Trim somehow. Pipeline?
+        		for (String seg : expr.split("\\|")) { // TODO Trim somehow.
+        			if (seg.toLowerCase().startsWith(prefix.toLowerCase())) {
+                        String[] parts = seg.substring(prefix.length()).split("\\s+");
+                        CmdMeta cmd = aliasMap.get(parts[0].toLowerCase());
+                        if (cmd != null) {
+                            // TODO Finish implementation
                         }
                     }
-                    else if (!cmd.command.guildOnly()
-                    		&& Arrays.stream(cmd.command.perms()).allMatch(p -> p.privTest.test(ctx.user())))
-                    	tryInvoke(cmd, Arrays.copyOfRange(parts, 1, parts.length), ctx);
-                }
-            }
+                    throw new IllegalArgumentException();
+        		}
+        	}
         }
     }
     
-    private static void tryInvoke(CmdMeta cmd, String[] args, IEventContext ctx) {
+    private Object tryParseCommand(CmdMeta cmd, IEventContext ctx, String[] args) throws ExecutionFailedException {
+        if (!(ctx.channel() instanceof PrivateChannel)) {
+            if (TiaBot.bot().moduleMan().configFor(cmd.modId).enabled(ctx.guild())) {
+                ChannelUser cu = ctx.user().of(ctx.guild()).of(ctx.channel());
+                if (!cu.has(cmd.command.dcPerms()) || !Arrays.stream(cmd.command.perms()).allMatch(p -> p.test.test(cu)))
+                    throw new ExecutionFailedException("%s: You don't have the necessary permissions!", ctx.user().tag());
+                else
+                	return tryInvoke(cmd, args, ctx);
+            }
+            else
+            	throw new ExecutionFailedException("%s: This command isn't available on this server!", ctx.user().name());
+        }
+        else if (!cmd.command.guildOnly()
+        		&& Arrays.stream(cmd.command.perms()).allMatch(p -> p.privTest.test(ctx.user())))
+        	return tryInvoke(cmd, args, ctx);
+    	throw new ExecutionFailedException("%s: This command can only be used in a server!", ctx.user().tag());
+    }
+    
+    private static Object tryInvoke(CmdMeta cmd, String[] args, IEventContext ctx) throws ExecutionFailedException {
     	try {
     		Object[] params = new Object[cmd.paramTypes.length];
     		ArgTokenizer tokenizer = new ArgTokenizer(args);
@@ -95,16 +103,16 @@ public class CommandDispatcher {
 	    			} catch (NoSuchElementException e) {
 	    				if (!cmd.paramTypes[i].isAnnotationPresent(Omittable.class)) {
 						    String argType = cmd.paramTypes[i].getType().getTypeName();
-		    				ctx.send("%s: Invalid argument %d! Expected %s.", ctx.user().tag(), i + 1, argType.substring(argType.lastIndexOf('.') + 1));
-		    				return;
+						    throw new ExecutionFailedException("%s: Invalid argument %d! Expected %s.", ctx.user().tag(), i + 1, argType.substring(argType.lastIndexOf('.') + 1));
 	    				}
 	    			}
     			}
     		}
-    		cmd.executor.invoke(null, params);
+    		return cmd.executor.invoke(null, params);
     	} catch (InvocationTargetException | IllegalAccessException e) {
     		Discord.logger().warn("Errored while dispatching command \"{}\"!", cmd.command.name());
     		e.printStackTrace();
+    		throw new ExecutionFailedException("%s: Encountered `%s` while executing command `%s`!", ctx.user().tag(), e.getClass().getName(), cmd.command.name());
     	}
     }
 
@@ -135,6 +143,15 @@ public class CommandDispatcher {
             this.paramTypes = method.getParameters();
         }
 
+    }
+    
+    @SuppressWarnings("serial")
+	private static class ExecutionFailedException extends Exception {
+    	
+    	ExecutionFailedException(String format, Object... args) {
+    		super(String.format(format, args));
+    	}
+    	
     }
 
 }
