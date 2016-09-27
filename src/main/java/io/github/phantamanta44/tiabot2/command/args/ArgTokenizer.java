@@ -1,16 +1,16 @@
 package io.github.phantamanta44.tiabot2.command.args;
 
-import java.lang.reflect.Type;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.NoSuchElementException;
-import java.util.function.Function;
-
 import io.github.phantamanta44.discord4j.core.module.ModuleConfig;
 import io.github.phantamanta44.discord4j.data.wrapper.Channel;
 import io.github.phantamanta44.discord4j.data.wrapper.User;
 import io.github.phantamanta44.tiabot2.TiaBot;
 import io.github.phantamanta44.tiabot2.command.Command;
+
+import java.lang.reflect.Type;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.NoSuchElementException;
+import java.util.function.Function;
 
 public class ArgTokenizer {
 	

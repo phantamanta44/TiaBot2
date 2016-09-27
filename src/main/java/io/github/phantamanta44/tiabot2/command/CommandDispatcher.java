@@ -1,17 +1,5 @@
 package io.github.phantamanta44.tiabot2.command;
 
-import java.lang.reflect.AnnotatedType;
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
-import java.lang.reflect.Parameter;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Map;
-import java.util.NoSuchElementException;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.CopyOnWriteArrayList;
-import java.util.stream.Stream;
-
 import io.github.phantamanta44.discord4j.core.Discord;
 import io.github.phantamanta44.discord4j.core.event.EventBus;
 import io.github.phantamanta44.discord4j.core.event.Events;
@@ -24,6 +12,17 @@ import io.github.phantamanta44.discord4j.util.reflection.Reflect;
 import io.github.phantamanta44.tiabot2.TiaBot;
 import io.github.phantamanta44.tiabot2.command.args.ArgTokenizer;
 import io.github.phantamanta44.tiabot2.command.args.Omittable;
+
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
+import java.lang.reflect.Parameter;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Map;
+import java.util.NoSuchElementException;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.stream.Stream;
 
 public class CommandDispatcher {
 
@@ -95,7 +94,8 @@ public class CommandDispatcher {
 	    				params[i] = tokenizer.resolveType(cmd.paramTypes[i].getType());
 	    			} catch (NoSuchElementException e) {
 	    				if (!cmd.paramTypes[i].isAnnotationPresent(Omittable.class)) {
-		    				ctx.send("%s: Invalid argument %d! Expected %s.", i + 1, cmd.paramTypes[i].getType().getTypeName());
+						    String argType = cmd.paramTypes[i].getType().getTypeName();
+		    				ctx.send("%s: Invalid argument %d! Expected %s.", ctx.user().tag(), i + 1, argType.substring(argType.lastIndexOf('.') + 1));
 		    				return;
 	    				}
 	    			}
@@ -126,15 +126,13 @@ public class CommandDispatcher {
         final String modId;
         final Command command;
         final Method executor;
-        final AnnotatedType[] paramTypes;
+        final Parameter[] paramTypes;
 
 		CmdMeta(String modId, Command cmd, Method method) {
             this.modId = modId;
             this.command = cmd;
             this.executor = method;
-            this.paramTypes = Arrays.stream(method.getParameters())
-            		.map(Parameter::getAnnotatedType)
-            		.toArray(AnnotatedType[]::new);
+            this.paramTypes = method.getParameters();
         }
 
     }
