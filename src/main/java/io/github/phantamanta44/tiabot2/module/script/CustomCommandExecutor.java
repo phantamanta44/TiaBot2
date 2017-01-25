@@ -71,7 +71,6 @@ public class CustomCommandExecutor {
                                 ScriptableObject.defineClass(scope, HostObjectUser.class);
                                 ScriptableObject.defineClass(scope, HostObjectMessage.class);
                                 ScriptableObject.defineClass(scope, HostObjectRole.class);
-                                ScriptableObject.putConstProperty(scope, "api", Context.getCurrentContext().newObject(scope, "DiscordAPI"));
                                 ScriptableObject.putConstProperty(scope, "guild", HostObjectGuild.impl(ctx.guild(), scope));
                                 ScriptableObject.putConstProperty(scope, "channel", HostObjectChannel.impl(ctx.channel(), scope));
                                 ScriptableObject.putConstProperty(scope, "sender", HostObjectUser.impl(ctx.user().of(ctx.guild()), scope));

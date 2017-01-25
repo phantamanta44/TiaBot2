@@ -13,14 +13,14 @@ public class ScriptExecutor {
         return scope;
     }
 
-	public static Scriptable execute(String fileName, String script) {
+	public static ExecutionResults execute(String fileName, String script) {
 		try {
             Context ctx = Context.getCurrentContext();
 			Script compiled = ctx.compileString(script, fileName, 0, null);
             Scriptable scope = threadScope.get();
-            compiled.exec(ctx, scope);
+            Object returnValue = compiled.exec(ctx, scope);
             threadScope.remove();
-            return scope;
+            return new ExecutionResults(returnValue, scope);
 		}  finally {
 			Context.exit();
 		}

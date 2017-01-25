@@ -15,13 +15,11 @@ import io.github.phantamanta44.tiabot2.command.CommandProvider;
 import io.github.phantamanta44.tiabot2.command.args.CodeBlock;
 import io.github.phantamanta44.tiabot2.command.args.InlineCodeBlock;
 import io.github.phantamanta44.tiabot2.command.args.Omittable;
+import io.github.phantamanta44.tiabot2.jsapi.ExecutionResults;
 import io.github.phantamanta44.tiabot2.jsapi.ScriptExecutor;
 import io.github.phantamanta44.tiabot2.jsapi.host.*;
 import org.apache.commons.lang3.tuple.Pair;
-import org.mozilla.javascript.Context;
-import org.mozilla.javascript.RhinoException;
-import org.mozilla.javascript.Scriptable;
-import org.mozilla.javascript.ScriptableObject;
+import org.mozilla.javascript.*;
 import sx.blah.discord.Discord4J;
 
 import java.time.ZoneId;
@@ -234,9 +232,14 @@ public class CoreModule {
             name = "eval", usage = "eval <`script`>", perms = CmdPerm.BOT_OWNER,
             desc = "Evaluates a script."
     )
-    public static void cmdEval(CodeBlock code, IEventContext ctx) {
+    public static void cmdEval(@Omittable CodeBlock code1, @Omittable InlineCodeBlock code2, IEventContext ctx) {
+        String code = code1 != null ? code1.getCode() : code2 != null ? code2.getCode() : null;
+        if (code == null) {
+            ctx.send("%s: No executable code provided!", ctx.user().tag());
+            return;
+        }
         try {
-            Scriptable scope = ScriptExecutor.start(true);
+            Scriptable scope = ScriptExecutor.start(false);
             ScriptableObject.defineClass(scope, HostObjectDiscordAPI.class);
             ScriptableObject.defineClass(scope, HostObjectGuild.class);
             ScriptableObject.defineClass(scope, HostObjectChannel.class);
@@ -247,12 +250,19 @@ public class CoreModule {
             ScriptableObject.putConstProperty(scope, "guild", HostObjectGuild.impl(ctx.guild(), scope));
             ScriptableObject.putConstProperty(scope, "channel", HostObjectChannel.impl(ctx.channel(), scope));
             ScriptableObject.putConstProperty(scope, "sender", HostObjectUser.impl(ctx.user().of(ctx.guild()), scope));
-            ScriptExecutor.execute("<eval>", code.getCode());
-            ((HostObjectDiscordAPI) scope.get("api", scope)).flushBufferSafe(ctx);
+            ExecutionResults result = ScriptExecutor.execute("<eval>", code);
+            Object returnVal = result.getReturnValue();
+            ((HostObjectDiscordAPI)scope.get("api", scope)).flushBufferSafe(ctx).done(ignored -> {
+                if (returnVal != null && !(returnVal instanceof Undefined)) {
+                    String stringified = Context.toString(returnVal);
+                    if (!stringified.isEmpty())
+                        ctx.send("%s: %s", ctx.user().tag(), stringified);
+                }
+            });
         } catch (RhinoException e) {
             ctx.send(e.getMessage());
         } catch (Exception e) {
-            ctx.send("%s: Encountered `%s` while executing command!", ctx.user().tag(), e.getClass().getName());
+            ctx.send("%s: Encountered `%s`:\n```%s```", ctx.user().tag(), e.getClass().getName(), Arrays.toString(e.getStackTrace()));
         }
     }
 
