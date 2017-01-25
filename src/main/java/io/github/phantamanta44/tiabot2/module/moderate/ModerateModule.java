@@ -27,7 +27,7 @@ public class ModerateModule {
     }
 
     @Command(
-            name = "rm", usage = "rm [count]", dcPerms = {Permission.MANAGE_MSG},
+            name = "rm", usage = "rm [count#]", dcPerms = {Permission.MANAGE_MSG},
             desc = "Removes a number of messages from the current channel.",
             guildOnly = true
     )
@@ -36,7 +36,7 @@ public class ModerateModule {
     }
 
     @Command(
-            name = "rmregex", usage = "rmregex <'regexp'> [count]", dcPerms = {Permission.MANAGE_MSG},
+            name = "rmregex", usage = "rmregex <'regexp'> [count#]", dcPerms = {Permission.MANAGE_MSG},
             desc = "Removes a number of messages matching a regex filter from the current channel.",
             guildOnly = true
     )
@@ -45,7 +45,7 @@ public class ModerateModule {
     }
 
     @Command(
-            name = "rmuser", usage = "rmuser <@user> [count]", dcPerms = {Permission.MANAGE_MSG},
+            name = "rmuser", usage = "rmuser <@user> [count#]", dcPerms = {Permission.MANAGE_MSG},
             desc = "Removes a number of messages send by a user from the current channel.",
             guildOnly = true
     )

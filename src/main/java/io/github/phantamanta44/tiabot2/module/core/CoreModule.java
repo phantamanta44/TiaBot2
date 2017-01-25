@@ -204,7 +204,7 @@ public class CoreModule {
     }
 
     @Command(
-            name = "revoke", aliases = "unsay", usage = "revoke [count]",
+            name = "revoke", aliases = "unsay", usage = "revoke [count#]",
             desc = "Revokes a number of messages sent by the bot.",
             dcPerms = Permission.MANAGE_MSG, guildOnly = true
     )
