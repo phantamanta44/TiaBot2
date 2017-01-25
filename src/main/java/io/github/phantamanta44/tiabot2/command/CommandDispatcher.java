@@ -22,6 +22,7 @@ import io.github.phantamanta44.discord4j.util.reflection.Reflect;
 import io.github.phantamanta44.tiabot2.TiaBot;
 import io.github.phantamanta44.tiabot2.command.args.ArgTokenizer;
 import io.github.phantamanta44.tiabot2.command.args.Omittable;
+import io.github.phantamanta44.tiabot2.command.args.Passed;
 
 public class CommandDispatcher {
 
@@ -55,49 +56,69 @@ public class CommandDispatcher {
     private void parse(IEventContext ctx) {
         if (ctx.message() != null && ctx.message().body() != null) {
         	String prefix = ctx.channel() instanceof PrivateChannel ? globalPrefix() : TiaBot.guildCfg(ctx.guild()).get("prefix").getAsString();
-        	for (String expr : ctx.message().body().split(";")) { // TODO Trim somehow. Pipeline?
-        		for (String seg : expr.split("\\|")) { // TODO Trim somehow.
+        	for (String expr : ctx.message().body().split(";")) {
+                expr = expr.trim();
+                Object passed = null;
+        		for (String seg : expr.split("\\|")) {
+                    seg = seg.trim();
         			if (seg.toLowerCase().startsWith(prefix.toLowerCase())) {
                         String[] parts = seg.substring(prefix.length()).split("\\s+");
                         CmdMeta cmd = aliasMap.get(parts[0].toLowerCase());
                         if (cmd != null) {
-                            // TODO Finish implementation
+                            try {
+                                passed = tryParseCommand(cmd, ctx, Arrays.copyOfRange(parts, 1, parts.length), passed);
+                            } catch (ExecutionFailedException e) {
+                                ctx.send(e.getMessage());
+                            }
+                        } else {
+                            ctx.send("%s: No such command `%s`!", ctx.user().tag(), parts[0]);
                         }
                     }
-                    throw new IllegalArgumentException();
         		}
         	}
         }
     }
     
-    private Object tryParseCommand(CmdMeta cmd, IEventContext ctx, String[] args) throws ExecutionFailedException {
+    private Object tryParseCommand(CmdMeta cmd, IEventContext ctx, String[] args, Object passed) throws ExecutionFailedException {
         if (!(ctx.channel() instanceof PrivateChannel)) {
             if (TiaBot.bot().moduleMan().configFor(cmd.modId).enabled(ctx.guild())) {
                 ChannelUser cu = ctx.user().of(ctx.guild()).of(ctx.channel());
                 if (!cu.has(cmd.command.dcPerms()) || !Arrays.stream(cmd.command.perms()).allMatch(p -> p.test.test(cu)))
                     throw new ExecutionFailedException("%s: You don't have the necessary permissions!", ctx.user().tag());
                 else
-                	return tryInvoke(cmd, args, ctx);
+                	return tryInvoke(cmd, args, ctx, passed);
             }
             else
             	throw new ExecutionFailedException("%s: This command isn't available on this server!", ctx.user().name());
         }
         else if (!cmd.command.guildOnly()
         		&& Arrays.stream(cmd.command.perms()).allMatch(p -> p.privTest.test(ctx.user())))
-        	return tryInvoke(cmd, args, ctx);
+        	return tryInvoke(cmd, args, ctx, passed);
     	throw new ExecutionFailedException("%s: This command can only be used in a server!", ctx.user().tag());
     }
     
-    private static Object tryInvoke(CmdMeta cmd, String[] args, IEventContext ctx) throws ExecutionFailedException {
+    private static Object tryInvoke(CmdMeta cmd, String[] args, IEventContext ctx, Object passed) throws ExecutionFailedException {
     	try {
     		Object[] params = new Object[cmd.paramTypes.length];
     		ArgTokenizer tokenizer = new ArgTokenizer(args);
     		for (int i = 0; i < params.length; i++) {
-    			if (cmd.paramTypes[i].getType() == IEventContext.class)
+    		    if (cmd.paramTypes[i].getType() == IEventContext.class)
     				params[i] = ctx;
     			else if (cmd.paramTypes[i].getType() == String[].class)
     				params[i] = args;
-    			else {
+    			else if (cmd.paramTypes[i].isAnnotationPresent(Passed.class)) {
+    			    if (passed == null) {
+    			        if (!cmd.paramTypes[i].isAnnotationPresent(Omittable.class)) {
+                            String argType = cmd.paramTypes[i].getType().getTypeName();
+                            throw new ExecutionFailedException("%s: No passed value! Expected %s.", ctx.user().tag(), argType.substring(argType.lastIndexOf('.') + 1));
+                        }
+                    } else if (!cmd.paramTypes[i].getType().isAssignableFrom(passed.getClass())) {
+                        String argType = cmd.paramTypes[i].getType().getTypeName();
+                        throw new ExecutionFailedException("%s: Invalid passed value! Expected %s.", ctx.user().tag(), argType.substring(argType.lastIndexOf('.') + 1));
+                    } else {
+    			        params[i] = passed;
+                    }
+                } else {
 	    			try {
 	    				params[i] = tokenizer.resolveType(cmd.paramTypes[i].getType());
 	    			} catch (NoSuchElementException e) {

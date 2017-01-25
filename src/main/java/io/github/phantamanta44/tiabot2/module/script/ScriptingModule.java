@@ -1,14 +1,5 @@
 package io.github.phantamanta44.tiabot2.module.script;
 
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.PrintStream;
-import java.nio.file.Files;
-import java.nio.file.Path;
-
-import org.apache.commons.lang3.tuple.Pair;
-
 import io.github.phantamanta44.discord4j.core.Discord;
 import io.github.phantamanta44.discord4j.core.event.context.IEventContext;
 import io.github.phantamanta44.discord4j.core.module.Module;
@@ -20,6 +11,14 @@ import io.github.phantamanta44.tiabot2.TiaBot;
 import io.github.phantamanta44.tiabot2.command.CmdPerm;
 import io.github.phantamanta44.tiabot2.command.Command;
 import io.github.phantamanta44.tiabot2.command.CommandProvider;
+import org.apache.commons.lang3.tuple.Pair;
+
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.PrintStream;
+import java.nio.file.Files;
+import java.nio.file.Path;
 
 @CommandProvider(ScriptingModule.MOD_ID)
 public class ScriptingModule {

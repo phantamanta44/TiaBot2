@@ -31,12 +31,8 @@ public class CustomCommandExecutor {
     private static final Map<String, Collection<String>> loaded = new HashMap<>();
 
 	public static void register(String guild, String name) {
-		Collection<String> forGuild = loaded.get(guild);
-		if (forGuild == null) {
-			forGuild = new HashSet<>();
-			loaded.put(guild, forGuild);
-		}
-		forGuild.add(name);
+        Collection<String> forGuild = loaded.computeIfAbsent(guild, k -> new HashSet<>());
+        forGuild.add(name);
 	}
 	
 	public static void unregister(String guild, String name) {

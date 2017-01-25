@@ -1,13 +1,5 @@
 package io.github.phantamanta44.tiabot2.module.core;
 
-import java.time.ZoneId;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.stream.Stream;
-
-import org.apache.commons.lang3.tuple.Pair;
-
 import io.github.phantamanta44.discord4j.core.event.context.IEventContext;
 import io.github.phantamanta44.discord4j.core.module.Module;
 import io.github.phantamanta44.discord4j.core.module.ModuleConfig;
@@ -20,9 +12,23 @@ import io.github.phantamanta44.tiabot2.TiaBot;
 import io.github.phantamanta44.tiabot2.command.CmdPerm;
 import io.github.phantamanta44.tiabot2.command.Command;
 import io.github.phantamanta44.tiabot2.command.CommandProvider;
+import io.github.phantamanta44.tiabot2.command.args.CodeBlock;
 import io.github.phantamanta44.tiabot2.command.args.InlineCodeBlock;
 import io.github.phantamanta44.tiabot2.command.args.Omittable;
+import io.github.phantamanta44.tiabot2.jsapi.ScriptExecutor;
+import io.github.phantamanta44.tiabot2.jsapi.host.*;
+import org.apache.commons.lang3.tuple.Pair;
+import org.mozilla.javascript.Context;
+import org.mozilla.javascript.RhinoException;
+import org.mozilla.javascript.Scriptable;
+import org.mozilla.javascript.ScriptableObject;
 import sx.blah.discord.Discord4J;
+
+import java.time.ZoneId;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+import java.util.stream.Stream;
 
 @CommandProvider(CoreModule.MOD_ID)
 public class CoreModule {
@@ -222,6 +228,32 @@ public class CoreModule {
     )
     public static void cmdAddBot(String[] args, IEventContext ctx) {
         ctx.send("%s: https://discordapp.com/oauth2/authorize?client_id=%s&scope=bot", ctx.user().tag(), TiaBot.bot().application().clientId());
+    }
+
+    @Command(
+            name = "eval", usage = "eval <`script`>", perms = CmdPerm.BOT_OWNER,
+            desc = "Evaluates a script."
+    )
+    public static void cmdEval(CodeBlock code, IEventContext ctx) {
+        try {
+            Scriptable scope = ScriptExecutor.start(true);
+            ScriptableObject.defineClass(scope, HostObjectDiscordAPI.class);
+            ScriptableObject.defineClass(scope, HostObjectGuild.class);
+            ScriptableObject.defineClass(scope, HostObjectChannel.class);
+            ScriptableObject.defineClass(scope, HostObjectUser.class);
+            ScriptableObject.defineClass(scope, HostObjectMessage.class);
+            ScriptableObject.defineClass(scope, HostObjectRole.class);
+            ScriptableObject.putConstProperty(scope, "api", Context.getCurrentContext().newObject(scope, "DiscordAPI"));
+            ScriptableObject.putConstProperty(scope, "guild", HostObjectGuild.impl(ctx.guild(), scope));
+            ScriptableObject.putConstProperty(scope, "channel", HostObjectChannel.impl(ctx.channel(), scope));
+            ScriptableObject.putConstProperty(scope, "sender", HostObjectUser.impl(ctx.user().of(ctx.guild()), scope));
+            ScriptExecutor.execute("<eval>", code.getCode());
+            ((HostObjectDiscordAPI) scope.get("api", scope)).flushBufferSafe(ctx);
+        } catch (RhinoException e) {
+            ctx.send(e.getMessage());
+        } catch (Exception e) {
+            ctx.send("%s: Encountered `%s` while executing command!", ctx.user().tag(), e.getClass().getName());
+        }
     }
 
 }
